@@ -25,7 +25,7 @@ namespace BytePusherWinForms
             var mem = new Span<byte>(rawMemory);
             fileData.CopyTo(mem);
 
-            const int frameTimeMs = 1_000;
+            const int frameTimeMs = 33;
             var palette = GetPalette();
 
             // Each iteration represents the amount of work that can be done per frame.
@@ -52,32 +52,23 @@ namespace BytePusherWinForms
                 
                 // Draw the screen.
                 var bitmap = new Bitmap(256, 256, PixelFormat.Format32bppArgb);
-                //var rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-                //var bitmapData = bitmap.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-                //var pixels = new byte[bitmapData.Stride * bitmapData.Height];
+                var rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+                var bitmapData = bitmap.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+                var pixels = new byte[bitmapData.Stride * bitmapData.Height];
 
                 var pixelDataStart = mem[5] << 16;
                 for (int j = 0; j < 0x10000; j++)
                 {
                     var pixel = palette[mem[pixelDataStart + j]];
-                    var x = j % 0x100;
-                    var y = j / 0x100;
-                    bitmap.SetPixel(x, y, Color.FromArgb((int)pixel));
-
-                    //var bitsOffset = (bitmap.Height - y - 1) * bitmapData.Stride;
-
-                    //for (var x = 0; x < bitmap.Width; x++)
-                    //{
-                    //    var rgba = raster[rasterOffset++];
-                    //    pixels[bitsOffset++] = (byte)((rgba >> 16) & 0xff);
-                    //    pixels[bitsOffset++] = (byte)((rgba >> 8) & 0xff);
-                    //    pixels[bitsOffset++] = (byte)(rgba & 0xff);
-                    //    pixels[bitsOffset++] = (byte)((rgba >> 24) & 0xff);
-                    //}
+                    var offsetStart = j * 4;
+                    pixels[offsetStart++] = (byte)((pixel >> 16) & 0xff);
+                    pixels[offsetStart++] = (byte)((pixel >> 8) & 0xff);
+                    pixels[offsetStart++] = (byte)(pixel & 0xff);
+                    pixels[offsetStart] = (byte)((pixel >> 24) & 0xff);
                 }
 
-                //Marshal.Copy(pixels, 0, bitmapData.Scan0, pixels.Length);
-                //bitmap.UnlockBits(bitmapData);
+                Marshal.Copy(pixels, 0, bitmapData.Scan0, pixels.Length);
+                bitmap.UnlockBits(bitmapData);
 
                 var oldBitmap = ScreenPictureBox.Image;
                 ScreenPictureBox.Image = bitmap;
