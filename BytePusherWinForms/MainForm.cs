@@ -17,9 +17,13 @@ namespace BytePusherWinForms
 
             //TODO: Check file size.
             //var fileData = new Span<byte>(File.ReadAllBytes(OpenBpFileDialog.FileName));
-            var fileData =
-                new Span<byte>(
-                    File.ReadAllBytes("C:\\Users\\BenH\\OneDrive - SCANSATION LTD\\Source\\jsbp\\demos\\palette.bp"));
+
+            //const string filePath = "C:\\Users\\BenH\\OneDrive - SCANSATION LTD\\Source\\jsbp\\demos\\palette.bp";
+            //const string filePath = "C:\\Users\\BenH\\OneDrive - SCANSATION LTD\\Source\\jsbp\\demos\\sprites.bp";
+            //const string filePath = "C:\\Users\\BenH\\OneDrive - SCANSATION LTD\\Source\\jsbp\\demos\\invertloopsine.bp";
+            //const string filePath = "C:\\Users\\BenH\\OneDrive - SCANSATION LTD\\Source\\jsbp\\demos\\scroller.bp";
+            const string filePath = "C:\\Users\\BenH\\OneDrive - SCANSATION LTD\\Source\\jsbp\\demos\\nyan.bp";
+            var fileData = new Span<byte>(File.ReadAllBytes(filePath));
 
             var rawMemory = new byte[0x1000008];
             var mem = new Span<byte>(rawMemory);
@@ -34,8 +38,7 @@ namespace BytePusherWinForms
                 var sw = new Stopwatch();
                 sw.Start();
 
-                //TODO: Get keyboard state
-                //TODO: Get keys
+                //TODO: Set keyboard state
 
                 // pc = 3 byte Program Counter. Read from memory at the start of each frame. 
                 var pc = mem[2] << 16 | mem[3] << 8 | mem[4];
@@ -50,14 +53,14 @@ namespace BytePusherWinForms
                     pc = mem[pc + 6] << 16 | mem[pc + 7] << 8 | mem[pc + 8];
                 } while (--i > 0);
                 
-                // Draw the screen.
+                // Draw the screen. We draw to an array of byte data which is then blitted to the picture box.
                 var bitmap = new Bitmap(256, 256, PixelFormat.Format32bppArgb);
                 var rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
                 var bitmapData = bitmap.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
                 var pixels = new byte[bitmapData.Stride * bitmapData.Height];
 
                 var pixelDataStart = mem[5] << 16;
-                for (int j = 0; j < 0x10000; j++)
+                for (var j = 0; j < 0x10000; j++)
                 {
                     var pixel = palette[mem[pixelDataStart + j]];
                     var offsetStart = j * 4;
@@ -73,6 +76,8 @@ namespace BytePusherWinForms
                 var oldBitmap = ScreenPictureBox.Image;
                 ScreenPictureBox.Image = bitmap;
                 oldBitmap?.Dispose();
+
+                //TODO: Output audio.
 
                 // Wait until the new frame should start.
                 Application.DoEvents();
