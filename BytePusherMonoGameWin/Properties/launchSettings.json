@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "BytePusherMonoGameWin": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Users\\BenH\\OneDrive - SCANSATION LTD\\Source\\jsbp\\demos\\keyboard.bp\""
+    }
+  }
+}
